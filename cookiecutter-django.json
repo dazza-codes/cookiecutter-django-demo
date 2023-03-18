@@ -1,0 +1,32 @@
+{
+  "cookiecutter": {
+    "project_name": "Django Demo App",
+    "project_slug": "django_demo_app",
+    "description": "Django Demo Application",
+    "author_name": "Darren Weber",
+    "domain_name": "example.com",
+    "email": "dazza-codes@github.com",
+    "version": "0.1.0",
+    "open_source_license": "Apache Software License 2.0",
+    "timezone": "UTC",
+    "windows": "n",
+    "use_pycharm": "y",
+    "use_docker": "y",
+    "postgresql_version": "14",
+    "cloud_provider": "AWS",
+    "mail_service": "MailHog",
+    "use_async": "y",
+    "use_drf": "y",
+    "frontend_pipeline": "Webpack",
+    "use_celery": "y",
+    "use_mailhog": "y",
+    "use_sentry": "y",
+    "use_whitenoise": "y",
+    "use_heroku": "n",
+    "ci_tool": "Github",
+    "keep_local_envs_in_vcs": "y",
+    "debug": "n",
+    "_template": "https://github.com/cookiecutter/cookiecutter-django",
+    "_output_dir": "~/src/cookiecutter-django-demo/"
+  }
+}
