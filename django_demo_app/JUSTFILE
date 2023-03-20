@@ -1,0 +1,106 @@
+# Justfile References
+# - https://github.com/casey/just#quick-start (20 min read)
+# - https://3musketeers.io/guide/ on command abstractions
+#
+# The following sections from the quick-start cover environment variables:
+# - https://github.com/casey/just#dotenv-integration
+# - https://github.com/casey/just#environment-variables
+# - https://github.com/casey/just#getting-and-setting-environment-variables
+#
+# just normally executes recipes with the current directory set to the directory that contains the justfile
+# - https://github.com/casey/just#disabling-changing-directory190
+
+# write recipes in other languages (e.g. python) using shebang recipes
+# - https://github.com/casey/just#writing-recipes-in-other-languages
+#
+# A good blog post about debugging django in docker containers:
+# - https://mattsegal.dev/docker-container-debugging.html
+
+# set shell := ["bash", "-uc"]
+# set shell := ["zsh", "-uc"]
+
+# env_var(key) — Retrieves the environment variable with name key, aborting if it is not present.
+# env_var_or_default(key, default) — Retrieves the environment variable for key, returning default if it is not present.
+# home_dir := env_var('HOME')
+# export RUST_BACKTRACE := "1"
+
+# https://github.com/casey/just#dotenv-integration
+# set dotenv-load
+
+export DOCKER_BUILDKIT := "1"
+export DOCKER_DEFAULT_PLATFORM := "linux/amd64"
+
+# For muliple compose files, use "a.yml:b.yml" where the content from
+# 'b.yml' will inherit or override the content from 'a.yml', e.g.
+# COMPOSE_FILE=docker-compose.yml:docker-compose.prod.yml
+export COMPOSE_PATH_SEPARATOR := env_var_or_default("COMPOSE_PATH_SEPARATOR", ":")
+export COMPOSE_FILE := env_var_or_default("COMPOSE_FILE", "local.yml")
+
+# The default recipe lists available recipes
+default:
+    @just --justfile {{justfile()}} --list --list-heading $'Docker-Django recipes:\n'
+
+docker-env:
+    @env | grep 'DOCKER'
+
+docker-django-debug:
+    docker-compose run --rm --service-ports django
+
+docker-django-down:
+    docker-compose down
+
+docker-django-logs: docker-django-up
+    docker-compose logs django
+    # docker-compose logs --tail 100 -f worker
+
+docker-django-makemigrations: docker-django-up
+    docker-compose exec django \
+        bash -c 'cd /code && python3 ./manage.py makemigrations'
+
+docker-django-migrate: docker-django-up
+    docker-compose exec django \
+        bash -c 'cd /code && python3 ./manage.py migrate'
+
+docker-django-rebuild: docker-django-down
+    docker-compose build --no-cache django
+
+docker-django-shell: docker-django-up
+    docker-compose exec django bash
+
+docker-django-stop:
+    docker-compose stop
+
+docker-django-test $COMPOSE_FILE="local.yml":
+    docker-compose build  #--progress=plain
+    docker-compose up --exit-code-from django
+    docker-compose down
+    #docker-compose -f docker-compose.yml -f docker-compose-test.yml build  #--progress=plain
+    #docker-compose -f docker-compose.yml -f docker-compose-test.yml up --exit-code-from django
+    #docker-compose -f docker-compose.yml -f docker-compose-test.yml down
+
+docker-django-test-shell $COMPOSE_FILE="local.yml":
+    docker-compose build  #--progress=plain
+    DEBUG_SHELL=true docker-compose up -d
+    docker-compose exec django bash
+    docker-compose down
+    #docker-compose -f docker-compose.yml -f docker-compose-test.yml build  #--progress=plain
+    #DEBUG_SHELL=true docker-compose -f docker-compose.yml -f docker-compose-test.yml up -d
+    #docker-compose -f docker-compose.yml -f docker-compose-test.yml exec django bash
+    #docker-compose -f docker-compose.yml -f docker-compose-test.yml down
+
+docker-django-up:
+    docker-compose up --detach
+
+docker-system-nuke:
+    docker kill $(docker ps -q)
+    docker rm $(docker ps -a -q)
+    docker rmi $(docker images -q)
+    docker volume rm $(docker volume ls -q)
+
+docker-system-prune:
+    docker system prune -a
+    docker volume prune
+
+docker-volume-inspect:
+    docker volume inspect strategic-reporting-api_postgresdata
+
